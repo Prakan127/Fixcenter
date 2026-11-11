@@ -27,7 +27,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body)
 .burst{position:fixed;inset:0;z-index:0;pointer-events:none}
 .burst canvas{position:absolute;inset:0;display:block}
 .wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
-header{display:flex;align-items:center;justify-content:space-between;padding-block:22px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:22px}
+.logo{flex:none}
 .logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:.04em;color:var(--ink);text-decoration:none}
 .mark{display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--btn-light-ink)}
 .mark svg{width:20px;height:20px}
@@ -79,8 +80,10 @@ legend em{color:var(--muted);font-style:normal}
 .check input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:#EDEDED;padding:0}
 .check input[type=text]{flex:1}
 /* sign-in */
-.hdr-right{display:flex;align-items:center;min-width:0}
-.who{color:var(--muted);font-size:14px;margin-right:12px;max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-right{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px 14px;min-width:0}
+.who{color:var(--muted);font-size:14px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contact{font:inherit;font-weight:500;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:12px;padding:10px 18px;cursor:pointer;white-space:nowrap}
+.contact:hover{background:var(--surface)}
 .modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.72)}
 .modal-box{position:relative;width:min(400px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px}
 @media (max-width:480px){.modal-box{padding:22px}}
@@ -89,6 +92,31 @@ legend em{color:var(--muted);font-style:normal}
 .modal-x{position:absolute;top:10px;right:12px;border:0;background:transparent;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:4px 8px}
 .modal-x:hover{color:var(--ink)}
 .m{white-space:pre-line}
+.channels{display:grid;gap:10px}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;min-height:56px;border:1px solid var(--line);border-radius:12px}
+.ch-name{font-family:var(--font-display);font-weight:500}
+.ch-btn,.ch-copy{font:inherit;font-weight:500;cursor:pointer;border:0;border-radius:999px;padding:8px 18px;background:var(--btn-light);color:var(--btn-light-ink);white-space:nowrap}
+.ch img{display:block}
+@media (max-width:640px){.who{display:none}}
+@media (max-width:420px){.contact{padding:10px 12px}.signin{padding:10px 14px}}
+.ch-list{display:grid;gap:12px}
+.ch{flex-wrap:wrap;background:var(--bg)}
+.ch-note{width:100%;margin:0;font-size:13px;color:var(--muted)}
+.ch-btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.ch a.line-link{display:inline-flex;align-items:center;color:var(--ink)}
+.ch a.line-link img{display:block;height:36px;width:auto}
+.mail-box{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.mail-addr{font-weight:500;user-select:all;overflow-wrap:anywhere}
+.chan{display:flex;align-items:center;justify-content:center;width:100%;min-height:56px;padding:12px 16px;border:0;border-radius:12px;font:inherit;font-weight:600;font-size:17px;text-decoration:none;cursor:pointer;color:#FFFFFF}
+.chan{gap:10px}
+.chan svg{width:22px;height:22px;flex:none}
+.chan:hover{filter:brightness(1.1)}
+.chan.line{background:#06C755}
+.chan.fb{background:#1877F2}
+.chan.mail{background:#000000;border:1px solid var(--line)}
+.mail-box{padding:12px 14px;border:1px dashed var(--line);border-radius:12px;background:var(--bg)}
+.ch-out{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;padding:12px 14px;border:1px dashed var(--line);border-radius:10px;font-size:14px;overflow-wrap:anywhere}
+.ch-out .mail{font-weight:600;user-select:all;overflow-wrap:anywhere}
 .success{text-align:center}
 .ok-icon{width:56px;height:56px;border-radius:50%;background:var(--btn-light);color:var(--btn-light-ink);display:grid;place-items:center;margin:0 auto 14px}
 .ok-icon svg{width:28px;height:28px}
@@ -132,6 +160,7 @@ legend em{color:var(--muted);font-style:normal}
   <header>
     <a class="logo" href="#" data-go="home" aria-label="FIXCENTER หน้าแรก"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>FIXCENTER</a>
     <div class="hdr-right">
+      <button class="contact" id="contact-open" type="button" aria-haspopup="dialog" aria-label="Contact ช่องทางการติดต่อ"><span aria-hidden="true">✉️</span> Contact</button>
       <span class="who" id="whoami" hidden></span>
       <button class="signin" id="signin" type="button">Sign In</button>
     </div>
@@ -205,6 +234,25 @@ legend em{color:var(--muted);font-style:normal}
       </form>
     </section>
   </main>
+</div>
+
+<!-- ช่องทางติดต่อ (ไม่ต้อง Sign In) -->
+<div class="modal" id="cmodal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="c-title">
+    <button class="modal-x" id="cx" type="button" aria-label="ปิด">×</button>
+    <h2 id="c-title">ช่องทางติดต่อ</h2>
+    <p class="sub">เลือกช่องทางที่สะดวก</p>
+    <div class="ch-list">
+      <a class="chan line" href="https://lin.ee/UVBv8i7Z" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>LINE</a>
+      <button class="chan fb" id="fb-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Facebook Page</button>
+      <p class="ch-note" id="fb-note" hidden>ปุ่มทดสอบ ยังไม่ได้ใส่ลิงก์เพจ Facebook</p>
+      <button class="chan mail" id="mail-btn" type="button" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Email</button>
+      <div class="mail-box" id="mail-box" hidden>
+        <span class="mail-addr" id="mail-addr">cy2.chd@gmail.com</span>
+        <button class="ch-btn" id="mail-copy" type="button">คัดลอก</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- แจ้งเตือนส่งข้อมูลสำเร็จ -->
@@ -536,6 +584,29 @@ f.addEventListener("submit", async e => {
   }finally{
     btn.disabled = false; btn.textContent = "ส่งข้อมูล";
   }
+});
+
+/* ---------- ช่องทางติดต่อ ---------- */
+const cmodal = document.getElementById("cmodal");
+const mailBox = document.getElementById("mail-box"), mailBtn = document.getElementById("mail-btn");
+function openContact(){ cmodal.hidden = false; setTimeout(() => document.getElementById("cx").focus(), 0); }
+function closeContact(){ cmodal.hidden = true; }
+document.getElementById("contact-open").addEventListener("click", openContact);
+document.getElementById("cx").addEventListener("click", closeContact);
+cmodal.addEventListener("click", e => { if(e.target === cmodal) closeContact(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !cmodal.hidden) closeContact(); });
+document.getElementById("fb-btn").addEventListener("click", () => { document.getElementById("fb-note").hidden = false; });
+mailBtn.addEventListener("click", () => {
+  const show = mailBox.hidden; mailBox.hidden = !show; mailBtn.setAttribute("aria-expanded", String(show));
+});
+document.getElementById("mail-copy").addEventListener("click", async e => {
+  const b = e.currentTarget, addr = document.getElementById("mail-addr").textContent;
+  try{ await navigator.clipboard.writeText(addr); b.textContent = "คัดลอกแล้ว"; }
+  catch(err){
+    const r = document.createRange(); r.selectNodeContents(document.getElementById("mail-addr"));
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = "เลือกข้อความแล้ว";
+  }
+  setTimeout(() => { b.textContent = "คัดลอก"; }, 1800);
 });
 
 /* ---------- แจ้งเตือนสำเร็จ: กดตกลงแล้วกลับหน้าแรก ---------- */
