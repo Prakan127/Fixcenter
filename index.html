@@ -88,6 +88,7 @@ legend em{color:var(--muted);font-style:normal}
 .modal-box .sub{margin:0 0 20px;color:var(--muted);font-size:14px}
 .modal-x{position:absolute;top:10px;right:12px;border:0;background:transparent;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:4px 8px}
 .modal-x:hover{color:var(--ink)}
+.m{white-space:pre-line}
 .success{text-align:center}
 .ok-icon{width:56px;height:56px;border-radius:50%;background:var(--btn-light);color:var(--btn-light-ink);display:grid;place-items:center;margin:0 auto 14px}
 .ok-icon svg{width:28px;height:28px}
@@ -281,6 +282,7 @@ const CONFIG = {
     symptoms: "entry.1974637541", detail: "entry.115760767"
   },
   deviceTypes: ["IPHONE", "IPAD", "MAC"],
+  lookupUrl: "https://script.google.com/macros/s/AKfycbztc_WcT7GmUM_D2V1_5-z3rY_28eaejZr6pFLow1OypxVAUacQVj4YsIbpQsZooSLx/exec",   // Apps Script ที่ดึงรหัสงาน (Job_ID) จาก Google Sheet
   symptoms: ["จอแตก", "แบตเสื่อม", "เปิดไม่ติด", "ชาร์จไม่เข้า"],
   googleClientId: "629110125095-ivj5sapm0osu8k3rq59i33dsqe144g7f.apps.googleusercontent.com"
 };
@@ -526,7 +528,9 @@ f.addEventListener("submit", async e => {
     } else {
       await new Promise(r => setTimeout(r, 600));
     }
-    f.reset(); fillFromProfile(); openSuccess();
+    const info = { name: v("name"), email: v("email"), phone: v("phone"), model: v("model"),
+      symptoms: checked.concat(otherOn && otherText ? [otherText] : []).join(", ") };
+    f.reset(); fillFromProfile(); openSuccess(); sendReceipt(info);
   }catch(err){
     fail("ส่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง");
   }finally{
@@ -537,7 +541,7 @@ f.addEventListener("submit", async e => {
 /* ---------- แจ้งเตือนสำเร็จ: กดตกลงแล้วกลับหน้าแรก ---------- */
 const okmodal = document.getElementById("okmodal");
 function openSuccess(){ okmodal.hidden = false; setTimeout(() => document.getElementById("ok-btn").focus(), 0); }
-function closeSuccess(){ okmodal.hidden = true; go("home"); }
+function closeSuccess(){ okmodal.hidden = true; go("home"); openChat(); }
 document.getElementById("ok-btn").addEventListener("click", closeSuccess);
 okmodal.addEventListener("click", e => { if(e.target === okmodal) closeSuccess(); });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !okmodal.hidden) closeSuccess(); });
@@ -550,6 +554,37 @@ fab.hidden = false;
 function add(text, who){
   const d = document.createElement("div"); d.className = "m " + who; d.textContent = text;
   msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+  return d;
+}
+function greet(){
+  if(!greeted){ greeted = true; add("สวัสดีครับ ยินดีต้อนรับสู่ FIXCENTER ศูนย์บริการซ่อมมือถือครบวงจร มีอะไรให้ช่วยไหมครับ", "them"); }
+}
+function postBot(text){ greet(); quick.hidden = true; return add(text, "them"); }
+function receiptText(d, code){
+  return "รับเรื่องแจ้งซ่อมแล้ว\nรหัสงาน: " + code + "\nชื่อ: " + d.name + "\nรุ่น: " + d.model +
+    "\nอาการเสีย: " + d.symptoms + "\nเก็บรหัสนี้ไว้ใช้ติดตามสถานะได้เลยครับ";
+}
+/* ส่งใบรับเรื่องในแชต: ถามรหัสงาน (Job_ID) จาก Google Sheet ผ่าน Apps Script */
+async function sendReceipt(d){
+  const m = postBot("รับเรื่องแล้ว กำลังออกรหัสงานให้ครับ...");
+  const url = CONFIG.lookupUrl;
+  if(!url){
+    if(!configured) setTimeout(() => { m.textContent = receiptText(d, "FC-00000") + "\n(ตัวอย่าง)"; msgs.scrollTop = msgs.scrollHeight; }, 1800);
+    else m.textContent = "รับเรื่องแล้ว ทีมงานจะติดต่อกลับครับ";
+    return;
+  }
+  for(let i = 0; i < 10; i++){
+    await new Promise(r => setTimeout(r, 3000));
+    try{
+      const res = await fetch(url + "?email=" + encodeURIComponent(d.email) + "&phone=" + encodeURIComponent(d.phone));
+      const j = await res.json();
+      if(j && j.ok && j.found && j.code){
+        m.textContent = receiptText({name: j.name || d.name, model: j.model || d.model, symptoms: j.symptoms || d.symptoms}, j.code);
+        msgs.scrollTop = msgs.scrollHeight; return;
+      }
+    }catch(e){}
+  }
+  m.textContent = "รับเรื่องแล้ว ทีมงานจะติดต่อกลับครับ ถ้าต้องการตรวจสอบสถานะ พิมพ์บอกแอดมินได้เลย";
 }
 function reply(q){
   const t = q.toLowerCase();
@@ -567,7 +602,7 @@ function send(text){
 }
 function openChat(){
   chat.hidden = false; fab.hidden = true; fab.setAttribute("aria-expanded","true");
-  if(!greeted){ greeted = true; add("สวัสดีครับ ยินดีต้อนรับสู่ FIXCENTER ศูนย์บริการซ่อมมือถือครบวงจร มีอะไรให้ช่วยไหมครับ", "them"); }
+  greet();
   ci.focus();
 }
 function minimizeChat(){ chat.hidden = true; fab.hidden = false; fab.setAttribute("aria-expanded","false"); }
