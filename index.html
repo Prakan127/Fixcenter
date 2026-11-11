@@ -70,6 +70,25 @@ textarea{min-height:110px;resize:vertical}
 .status.ok{color:var(--ok)} .status.err{color:var(--err)}
 .demo{margin:0 0 18px;padding:10px 12px;border-radius:10px;border:1px dashed var(--muted);font-size:13px;color:var(--muted)}
 
+/* form extras */
+fieldset.field{border:0;padding:0;margin:0 0 16px;min-width:0}
+fieldset.field legend{font-size:14px;font-weight:500;padding:0;margin-bottom:8px}
+legend em{color:var(--muted);font-style:normal}
+.checks{display:grid;gap:10px}
+.check{display:flex;align-items:center;gap:10px;font-weight:400;cursor:pointer}
+.check input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:#EDEDED;padding:0}
+.check input[type=text]{flex:1}
+/* sign-in */
+.hdr-right{display:flex;align-items:center;min-width:0}
+.who{color:var(--muted);font-size:14px;margin-right:12px;max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.72)}
+.modal-box{position:relative;width:min(400px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px}
+@media (max-width:480px){.modal-box{padding:22px}}
+.modal-box h2{font-family:var(--font-display);font-weight:500;font-size:22px;margin:0 0 4px}
+.modal-box .sub{margin:0 0 20px;color:var(--muted);font-size:14px}
+.modal-x{position:absolute;top:10px;right:12px;border:0;background:transparent;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:4px 8px}
+.modal-x:hover{color:var(--ink)}
+.note{margin:12px 0 0;color:var(--muted);font-size:13px;text-align:center}
 /* chat */
 .chat-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
   display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:13px 20px;background:var(--btn-light);color:var(--btn-light-ink);
@@ -100,13 +119,17 @@ textarea{min-height:110px;resize:vertical}
   padding:10px 18px;border-radius:999px;font-size:14px;z-index:40;max-width:calc(100vw - 32px);text-align:center}
 @media (prefers-reduced-motion:no-preference){.m{animation:pop .18s ease-out}@keyframes pop{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 <div class="burst" id="burst" aria-hidden="true"><canvas id="burst-canvas"></canvas></div>
 <div class="wrap">
   <header>
     <a class="logo" href="#" data-go="home" aria-label="FIXCENTER หน้าแรก"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>FIXCENTER</a>
-    <button class="signin" id="signin" type="button">Sign In</button>
+    <div class="hdr-right">
+      <span class="who" id="whoami" hidden></span>
+      <button class="signin" id="signin" type="button">Sign In</button>
+    </div>
   </header>
 
   <!-- หน้าแรก -->
@@ -128,36 +151,48 @@ textarea{min-height:110px;resize:vertical}
   <main class="page" id="formpage" hidden>
     <a class="back" href="#" data-go="home">← กลับหน้าแรก</a>
     <section class="card" aria-labelledby="form-title">
-      <h2 id="form-title">แบบฟอร์มกรอกข้อมูล</h2>
+      <h2 id="form-title">แบบฟอร์มแจ้งซ่อม</h2>
       <p class="sub">ช่องที่มีเครื่องหมาย * จำเป็นต้องกรอก</p>
       <div class="demo" id="demo" hidden>โหมดทดสอบ: ยังไม่ได้ใส่ลิงก์ Google Form ในไฟล์ จึงยังไม่บันทึกลง Sheet จริง (ตั้งค่าที่ส่วน CONFIG ในโค้ด)</div>
       <form id="f" novalidate>
         <div class="field">
           <label for="name">ชื่อ-นามสกุล <em>*</em></label>
-          <input id="name" name="name" autocomplete="name" required>
+          <input id="name" name="name" autocomplete="name">
         </div>
         <div class="row">
           <div class="field">
             <label for="phone">เบอร์โทรติดต่อ <em>*</em></label>
-            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required>
+            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel">
           </div>
           <div class="field">
-            <label for="email">อีเมล <em>*</em></label>
-            <input id="email" name="email" type="email" autocomplete="email" required>
+            <label for="email">Email <em>*</em></label>
+            <input id="email" name="email" type="email" autocomplete="email">
           </div>
         </div>
         <div class="field">
-          <label for="type">หัวข้อที่ต้องการแจ้ง <em>*</em></label>
-          <select id="type" name="type" required>
-            <option value="">เลือกหัวข้อ</option>
-            <option>สอบถามข้อมูล</option>
-            <option>แจ้งซ่อม</option>
-            <option>ติดตามสถานะ</option>
-            <option>อื่นๆ</option>
-          </select>
+          <label for="address">ที่อยู่</label>
+          <input id="address" name="address" autocomplete="street-address">
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="device">ประเภทของเครื่อง <em>*</em></label>
+            <select id="device" name="device"><option value="">เลือกประเภท</option></select>
+          </div>
+          <div class="field">
+            <label for="model">รุ่นโทรศัพท์มือถือ <em>*</em></label>
+            <input id="model" name="model">
+          </div>
         </div>
         <div class="field">
-          <label for="detail">รายละเอียด</label>
+          <label for="passcode">รหัสปลดล็อคหน้าจอ <em>*</em></label>
+          <input id="passcode" name="passcode" autocomplete="off">
+        </div>
+        <fieldset class="field">
+          <legend>อาการเสียหลัก <em>*</em></legend>
+          <div class="checks" id="symptoms"></div>
+        </fieldset>
+        <div class="field">
+          <label for="detail">รายละเอียดเพิ่มเติม</label>
           <textarea id="detail" name="detail"></textarea>
         </div>
         <button class="btn" id="send" type="submit">ส่งข้อมูล</button>
@@ -165,6 +200,33 @@ textarea{min-height:110px;resize:vertical}
       </form>
     </section>
   </main>
+</div>
+
+<!-- หน้าต่าง Sign In (จำลอง) -->
+<div class="modal" id="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="m-title">
+    <button class="modal-x" id="mx" type="button" aria-label="ปิด">×</button>
+    <h2 id="m-title">เข้าสู่ระบบ</h2>
+    <p class="sub">เข้าสู่ระบบก่อนเพื่อคุยกับแอดมินหรือกรอกข้อมูล</p>
+    <div id="gwrap" hidden>
+      <div id="gbtn"></div>
+      <div class="status" id="gmsg" role="status" aria-live="polite"></div>
+      <p class="note">เข้าสู่ระบบด้วยบัญชี Google</p>
+    </div>
+    <form id="lf" novalidate>
+      <div class="field">
+        <label for="lu">อีเมลหรือชื่อผู้ใช้</label>
+        <input id="lu" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="lp">รหัสผ่าน</label>
+        <input id="lp" type="password" autocomplete="current-password">
+      </div>
+      <button class="btn" type="submit">เข้าสู่ระบบ</button>
+      <div class="status" id="lmsg" role="status" aria-live="polite"></div>
+      <p class="note">ระบบจำลอง ใส่อะไรลงไปก็เข้าได้</p>
+    </form>
+  </div>
 </div>
 
 <!-- แชตกับแอดมิน (อยู่ได้ทุกหน้า พับเก็บได้) -->
@@ -191,20 +253,22 @@ textarea{min-height:110px;resize:vertical}
 </div>
 
 <script>
-/* ============ CONFIG: แก้ตรงนี้เท่านั้น ============
-   1) formUrl: ลิงก์ Google Form เดิม เปลี่ยนท้ายจาก /viewform เป็น /formResponse
-      เช่น https://docs.google.com/forms/d/e/1FAIpQLSxxxxxxxx/formResponse
-   2) fields: entry ID ของแต่ละช่อง (ได้จาก "รับลิงก์ที่กรอกข้อมูลล่วงหน้า" ใน Google Form)
-   ช่อง "หัวข้อ" ถ้าใน Google Form เป็นตัวเลือก ข้อความต้องตรงกับตัวเลือกนั้นเป๊ะ */
+/* ============ CONFIG ============
+   formUrl / entry ID: มาจาก Google Form "แบบฟอร์มแจ้งซ่อม Fixcenter" (ตั้งค่าไว้แล้ว)
+   deviceTypes: ต้องตรงกับตัวเลือกใน Google Form เป๊ะ (ตัวอักษรเหมือนกันทุกตัว) เพิ่มได้ที่นี่
+   googleClientId: Client ID จาก Google Cloud Console สำหรับปุ่ม Sign in with Google */
 const CONFIG = {
-  formUrl: "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse",
+  formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScb8jXyCBgd7oaBzchIN2uP3NemdxaWMR9F6cOxFKlRU_Bgpg/formResponse",
+  pageHistory: "0,1,2",
+  fixed: { "entry.1345606886": "แจ้งซ่อม" },
   fields: {
-    name:   "entry.0000000001",
-    phone:  "entry.0000000002",
-    email:  "entry.0000000003",
-    type:   "entry.0000000004",
-    detail: "entry.0000000005"
-  }
+    name: "entry.354629110", phone: "entry.263080418", email: "entry.268816569", address: "entry.1818150671",
+    device: "entry.404115863", model: "entry.2060396707", passcode: "entry.597113244",
+    symptoms: "entry.1974637541", detail: "entry.115760767"
+  },
+  deviceTypes: ["IPHONE"],
+  symptoms: ["จอแตก", "แบตเสื่อม", "เปิดไม่ติด", "ชาร์จไม่เข้า"],
+  googleClientId: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
 };
 const configured = !CONFIG.formUrl.includes("YOUR_FORM_ID");
 if(!configured) document.getElementById("demo").hidden = false;
@@ -330,49 +394,129 @@ function setView(name){
   if(burst){ if(isForm) burst.pause(); else burst.resume(); }
   window.scrollTo(0, 0);
 }
+/* ---------- Sign In จำลอง: ใส่อะไรก็เข้าได้ ---------- */
+let user = null, pending = null, profile = null;
+try{ user = sessionStorage.getItem("fx_user"); profile = JSON.parse(sessionStorage.getItem("fx_profile") || "null"); }catch(e){}
+const modal = document.getElementById("modal"), lf = document.getElementById("lf");
+function updateAuthUI(){
+  const b = document.getElementById("signin"), w = document.getElementById("whoami");
+  b.textContent = user ? "ออกจากระบบ" : "Sign In";
+  w.hidden = !user; w.textContent = user ? "สวัสดี, " + user : "";
+}
+function openModal(){ modal.hidden = false; setTimeout(() => document.getElementById("lu").focus(), 0); }
+function closeModal(){ modal.hidden = true; pending = null; }
+function requireLogin(next){ if(user){ next(); return; } pending = next; openModal(); }
+
 function go(name){
+  if(name === "form" && !user){ requireLogin(() => go("form")); return; }
   setView(name);
   try{ history.replaceState(null, "", name === "form" ? "#form" : "#"); }catch(e){}
 }
 document.querySelectorAll("[data-go]").forEach(a => a.addEventListener("click", e => {
   e.preventDefault(); go(a.dataset.go);
 }));
-window.addEventListener("hashchange", () => setView(location.hash === "#form" ? "form" : "home"));
-setView(location.hash === "#form" ? "form" : "home");
+window.addEventListener("hashchange", () => go(location.hash === "#form" ? "form" : "home"));
+setView("home");
+if(location.hash === "#form") go("form");
 
-/* ---------- Sign In (ยังไม่เปิดใช้งานจริง) ---------- */
-document.getElementById("signin").addEventListener("click", () => {
-  const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role","status");
-  t.textContent = "ระบบล็อกอินจะเปิดให้ใช้งานเร็วๆ นี้";
-  document.body.appendChild(t); setTimeout(() => t.remove(), 2400);
+const lmsg = document.getElementById("lmsg");
+function signOut(){
+  user = null; profile = null;
+  try{ sessionStorage.removeItem("fx_user"); sessionStorage.removeItem("fx_profile"); }catch(e){}
+  try{ if(window.google && google.accounts && google.accounts.id) google.accounts.id.disableAutoSelect(); }catch(e){}
+  updateAuthUI(); minimizeChat(); resetChat(); go("home");
+}
+document.getElementById("signin").addEventListener("click", () => { if(user) signOut(); else requireLogin(() => {}); });
+document.getElementById("mx").addEventListener("click", closeModal);
+modal.addEventListener("click", e => { if(e.target === modal) closeModal(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !modal.hidden) closeModal(); });
+lf.addEventListener("submit", e => {
+  e.preventDefault();
+  const u = document.getElementById("lu").value.trim(), p = document.getElementById("lp").value;
+  if(!u && !p){ lmsg.textContent = "กรอกอะไรก็ได้อย่างน้อย 1 ช่อง"; return; }
+  user = (u.split("@")[0] || "").slice(0, 24) || "ผู้ใช้";
+  try{ sessionStorage.setItem("fx_user", user); }catch(err){}
+  const next = pending; pending = null; lmsg.textContent = ""; lf.reset(); modal.hidden = true;
+  updateAuthUI(); if(next) next();
 });
+updateAuthUI();
+
+/* ---------- Sign in with Google (ใช้เมื่อใส่ googleClientId แล้ว) ---------- */
+const gwrap = document.getElementById("gwrap"), gmsg = document.getElementById("gmsg");
+function loginWithProfile(p){
+  profile = p; user = (p.given || p.name || "ผู้ใช้").slice(0, 24);
+  try{ sessionStorage.setItem("fx_user", user); sessionStorage.setItem("fx_profile", JSON.stringify(p)); }catch(e){}
+  const next = pending; pending = null; modal.hidden = true;
+  updateAuthUI(); fillFromProfile(); if(next) next();
+}
+function decodeJwt(t){
+  const s = t.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+  return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(s), c => c.charCodeAt(0))));
+}
+function initGoogle(n){
+  if(!(window.google && google.accounts && google.accounts.id)){ if(n < 40) setTimeout(() => initGoogle(n + 1), 250); return; }
+  google.accounts.id.initialize({ client_id: CONFIG.googleClientId, callback: r => {
+    try{
+      const p = decodeJwt(r.credential);
+      loginWithProfile({name: p.name || p.email, given: p.given_name || p.name || p.email, email: p.email});
+    }catch(err){ gmsg.textContent = "เข้าสู่ระบบไม่สำเร็จ ลองใหม่อีกครั้ง"; }
+  }});
+  google.accounts.id.renderButton(document.getElementById("gbtn"), {theme: "filled_black", size: "large", shape: "pill", text: "signin_with", width: 260});
+}
+if(!CONFIG.googleClientId.includes("YOUR_GOOGLE_CLIENT_ID")){
+  gwrap.hidden = false; lf.hidden = true; initGoogle(0);
+}
 
 /* ---------- ฟอร์ม -> Google Form ---------- */
 const f = document.getElementById("f"), st = document.getElementById("status"), btn = document.getElementById("send");
+CONFIG.deviceTypes.forEach(t => { const o = document.createElement("option"); o.textContent = t; f.elements.device.appendChild(o); });
+const symBox = document.getElementById("symptoms");
+CONFIG.symptoms.forEach(t => {
+  const l = document.createElement("label"); l.className = "check";
+  const i = document.createElement("input"); i.type = "checkbox"; i.name = "sym"; i.value = t;
+  l.appendChild(i); l.appendChild(document.createTextNode(t)); symBox.appendChild(l);
+});
+(function(){
+  const d = document.createElement("div"); d.className = "check";
+  d.innerHTML = '<input type="checkbox" id="symOther" aria-label="อื่นๆ"><label for="symOther">อื่นๆ:</label><input type="text" id="symOtherText" aria-label="อาการอื่นๆ">';
+  symBox.appendChild(d);
+})();
+function fillFromProfile(){
+  if(!profile) return;
+  if(!f.elements.name.value) f.elements.name.value = profile.name || "";
+  if(!f.elements.email.value) f.elements.email.value = profile.email || "";
+}
+fillFromProfile();
 f.addEventListener("submit", async e => {
   e.preventDefault();
   st.className = "status"; st.textContent = "";
   const v = k => f.elements[k].value.trim();
-  if(!v("name") || !v("phone") || !v("email") || !v("type")){
-    st.className = "status err"; st.textContent = "กรุณากรอกช่องที่มีเครื่องหมาย * ให้ครบ"; return;
-  }
-  if(!f.elements.email.checkValidity()){
-    st.className = "status err"; st.textContent = "รูปแบบอีเมลไม่ถูกต้อง"; return;
-  }
+  const checked = Array.from(f.querySelectorAll('input[name="sym"]:checked')).map(x => x.value);
+  const otherOn = document.getElementById("symOther").checked, otherText = document.getElementById("symOtherText").value.trim();
+  const fail = m => { st.className = "status err"; st.textContent = m; };
+  if(!v("name") || !v("phone") || !v("email") || !v("device") || !v("model") || !v("passcode")) return fail("กรุณากรอกช่องที่มีเครื่องหมาย * ให้ครบ");
+  if(!f.elements.email.checkValidity()) return fail("รูปแบบอีเมลไม่ถูกต้อง");
+  if(!checked.length && !(otherOn && otherText)) return fail("กรุณาเลือกอาการเสียอย่างน้อย 1 ข้อ");
   btn.disabled = true; btn.textContent = "กำลังส่ง...";
   try{
     if(configured){
-      const body = new URLSearchParams();
-      for(const k in CONFIG.fields) body.append(CONFIG.fields[k], v(k));
+      const F = CONFIG.fields, body = new URLSearchParams();
+      ["name","phone","email","device","model","passcode"].forEach(k => body.append(F[k], v(k)));
+      if(v("address")) body.append(F.address, v("address"));
+      if(v("detail")) body.append(F.detail, v("detail"));
+      for(const k in CONFIG.fixed) body.append(k, CONFIG.fixed[k]);
+      checked.forEach(x => body.append(F.symptoms, x));
+      if(otherOn && otherText){ body.append(F.symptoms, "__other_option__"); body.append(F.symptoms + ".other_option_response", otherText); }
+      body.append("pageHistory", CONFIG.pageHistory);
       await fetch(CONFIG.formUrl, {method:"POST", mode:"no-cors", body});
     } else {
       await new Promise(r => setTimeout(r, 600));
     }
     st.className = "status ok";
-    st.textContent = configured ? "ส่งข้อมูลเรียบร้อย ตรวจสอบแถวใหม่ใน Google Sheet ได้เลย" : "ทดสอบสำเร็จ (ยังไม่ได้บันทึกลง Sheet เพราะยังไม่ได้ตั้งค่า CONFIG)";
-    f.reset();
+    st.textContent = "ส่งข้อมูลเรียบร้อย ทีมงานจะติดต่อกลับ";
+    f.reset(); fillFromProfile();
   }catch(err){
-    st.className = "status err"; st.textContent = "ส่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง";
+    fail("ส่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง");
   }finally{
     btn.disabled = false; btn.textContent = "ส่งข้อมูล";
   }
@@ -407,8 +551,9 @@ function openChat(){
   ci.focus();
 }
 function minimizeChat(){ chat.hidden = true; fab.hidden = false; fab.setAttribute("aria-expanded","false"); }
-fab.addEventListener("click", openChat);
-document.getElementById("open-chat").addEventListener("click", openChat);
+function resetChat(){ msgs.innerHTML = ""; greeted = false; quick.hidden = false; }
+fab.addEventListener("click", () => requireLogin(openChat));
+document.getElementById("open-chat").addEventListener("click", () => requireLogin(openChat));
 document.getElementById("min").addEventListener("click", minimizeChat);
 document.getElementById("cf").addEventListener("submit", e => {
   e.preventDefault(); const t = ci.value.trim(); if(!t) return; ci.value = ""; send(t);
