@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FIXCENTER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: dark full-height hero, centered headline with two pill buttons; form is a second view (#form); chat floats bottom-right and can be minimized. */
+:root{
+  --bg:#0A0A0A; --surface:#141414; --ink:#F5F5F5; --muted:#A3A3A3; --line:#2B2B2B;
+  --btn-dark:#262626; --btn-light:#EDEDED; --btn-light-ink:#0A0A0A; --accent:#FFFFFF;
+  --ok:#EDEDED; --err:#FFFFFF; --focus:#FFFFFF;
+  --chat-me:#EDEDED; --chat-me-ink:#0A0A0A; --chat-them:#232323;
+  --font-display:"Prompt","Noto Sans Thai",system-ui,sans-serif;
+  --font-body:"Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background-image:radial-gradient(ellipse 60% 45% at 50% 46%,#1C1C1C 0%,rgba(10,10,10,0) 70%);background-repeat:no-repeat}
+.burst{position:fixed;inset:0;z-index:0;pointer-events:none}
+.burst canvas{position:absolute;inset:0;display:block}
+.wrap{position:relative;z-index:1;max-width:1120px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;padding-block:22px}
+.logo{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:.04em;color:var(--ink);text-decoration:none}
+.mark{display:inline-grid;place-items:center;flex:none;width:36px;height:36px;border-radius:10px;background:var(--accent);color:var(--btn-light-ink)}
+.mark svg{width:20px;height:20px}
+.mark.big{width:clamp(40px,6vw,64px);height:clamp(40px,6vw,64px);border-radius:16px}
+.mark.big svg{width:58%;height:58%}
+.brandline{display:flex;align-items:center;justify-content:center;gap:clamp(10px,2vw,18px);color:var(--accent)}
+.signin{font:inherit;font-weight:500;color:#0A0A0A;background:#FFFFFF;border:0;border-radius:12px;padding:10px 22px;cursor:pointer}
+.signin:hover{background:#E4E9EC}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* home */
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-block:40px 96px}
+h1{text-shadow:0 0 28px rgba(10,10,10,.95),0 0 8px rgba(10,10,10,.8);font-family:var(--font-display);font-weight:500;font-size:clamp(30px,5.6vw,64px);line-height:1.2;letter-spacing:-.01em;margin:0 0 36px;text-wrap:balance}
+h1 span{display:block}
+.cta{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
+.pill{display:inline-flex;align-items:center;gap:10px;font:inherit;font-weight:500;font-size:17px;border:0;border-radius:999px;padding:16px 30px;cursor:pointer;text-decoration:none}
+.pill.dark{background:var(--btn-dark);color:var(--ink)}
+.pill.light{background:var(--btn-light);color:var(--btn-light-ink)}
+.pill:hover{filter:brightness(1.12)}
+.pill svg{width:20px;height:20px;flex:none}
+
+/* form view */
+.page{flex:1;padding-block:8px 96px;max-width:620px;width:100%;margin:0 auto}
+.back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:14px;margin-bottom:18px}
+.back:hover{color:var(--ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px}
+@media (max-width:480px){.card{padding:20px}}
+.card h2{font-family:var(--font-display);font-weight:500;font-size:24px;margin:0 0 4px}
+.card p.sub{margin:0 0 22px;color:var(--muted);font-size:14px}
+.field{display:grid;gap:6px;margin-bottom:16px}
+label{font-size:14px;font-weight:500}
+label em{color:var(--muted);font-style:normal}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;width:100%;min-width:0}
+textarea{min-height:110px;resize:vertical}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:480px){.row{grid-template-columns:minmax(0,1fr);gap:0}}
+.btn{font:inherit;font-weight:600;cursor:pointer;border:0;border-radius:999px;padding:14px 20px;background:var(--btn-light);color:var(--btn-light-ink);width:100%}
+.btn:disabled{opacity:.6;cursor:progress}
+.status{margin-top:14px;font-size:14px;min-height:22px}
+.status.ok{color:var(--ok)} .status.err{color:var(--err)}
+.demo{margin:0 0 18px;padding:10px 12px;border-radius:10px;border:1px dashed var(--muted);font-size:13px;color:var(--muted)}
+
+/* chat */
+.chat-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:13px 20px;background:var(--btn-light);color:var(--btn-light-ink);
+  font:inherit;font-weight:600;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.6);z-index:20}
+.chat-fab svg{width:20px;height:20px}
+.chat{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  width:min(360px,calc(100vw - 32px));height:min(520px,calc(100% - 40px));display:flex;flex-direction:column;
+  background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 48px rgba(0,0,0,.7);z-index:30;overflow:hidden}
+.chat-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--btn-dark);color:var(--ink);border-bottom:1px solid var(--line)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--btn-light);color:var(--btn-light-ink);display:grid;place-items:center;font-family:var(--font-display);font-weight:600}
+.chat-head .t{flex:1;min-width:0;line-height:1.3}
+.chat-head .t b{display:block;font-family:var(--font-display);font-weight:500}
+.chat-head .t small{color:var(--muted);display:flex;align-items:center;gap:6px}
+.chat-head .t small::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.chat-min{border:0;background:transparent;color:var(--ink);cursor:pointer;padding:6px 10px;border-radius:8px;font-size:22px;line-height:1}
+.chat-min:hover{background:var(--surface)}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
+.m{max-width:82%;padding:9px 13px;border-radius:16px;font-size:14.5px;overflow-wrap:anywhere}
+.m.them{background:var(--chat-them);align-self:flex-start;border-bottom-left-radius:4px}
+.m.me{background:var(--chat-me);color:var(--chat-me-ink);align-self:flex-end;border-bottom-right-radius:4px}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px 0;background:var(--bg)}
+.quick button{font:inherit;font-size:13px;cursor:pointer;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.quick button:hover{background:var(--chat-them)}
+.chat-form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:var(--surface)}
+.chat-form input{flex:1}
+.chat-form button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:0 16px;background:var(--btn-light);color:var(--btn-light-ink);cursor:pointer}
+.toast{position:fixed;left:50%;top:calc(80px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--btn-light);color:var(--btn-light-ink);
+  padding:10px 18px;border-radius:999px;font-size:14px;z-index:40;max-width:calc(100vw - 32px);text-align:center}
+@media (prefers-reduced-motion:no-preference){.m{animation:pop .18s ease-out}@keyframes pop{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+<div class="burst" id="burst" aria-hidden="true"><canvas id="burst-canvas"></canvas></div>
+<div class="wrap">
+  <header>
+    <a class="logo" href="#" data-go="home" aria-label="FIXCENTER หน้าแรก"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>FIXCENTER</a>
+    <button class="signin" id="signin" type="button">Sign In</button>
+  </header>
+
+  <!-- หน้าแรก -->
+  <main class="hero" id="home">
+    <h1><span class="brandline"><span class="mark big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>FIXCENTER</span><span>ศูนย์บริการซ่อมมือถือครบวงจร</span></h1>
+    <div class="cta">
+      <button class="pill dark" id="open-chat" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+        คุยกับแอดมิน
+      </button>
+      <a class="pill light" href="#form" data-go="form">
+        กรอกข้อมูล
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </main>
+
+  <!-- หน้ากรอกข้อมูล -->
+  <main class="page" id="formpage" hidden>
+    <a class="back" href="#" data-go="home">← กลับหน้าแรก</a>
+    <section class="card" aria-labelledby="form-title">
+      <h2 id="form-title">แบบฟอร์มกรอกข้อมูล</h2>
+      <p class="sub">ช่องที่มีเครื่องหมาย * จำเป็นต้องกรอก</p>
+      <div class="demo" id="demo" hidden>โหมดทดสอบ: ยังไม่ได้ใส่ลิงก์ Google Form ในไฟล์ จึงยังไม่บันทึกลง Sheet จริง (ตั้งค่าที่ส่วน CONFIG ในโค้ด)</div>
+      <form id="f" novalidate>
+        <div class="field">
+          <label for="name">ชื่อ-นามสกุล <em>*</em></label>
+          <input id="name" name="name" autocomplete="name" required>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="phone">เบอร์โทรติดต่อ <em>*</em></label>
+            <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required>
+          </div>
+          <div class="field">
+            <label for="email">อีเมล <em>*</em></label>
+            <input id="email" name="email" type="email" autocomplete="email" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="type">หัวข้อที่ต้องการแจ้ง <em>*</em></label>
+          <select id="type" name="type" required>
+            <option value="">เลือกหัวข้อ</option>
+            <option>สอบถามข้อมูล</option>
+            <option>แจ้งซ่อม</option>
+            <option>ติดตามสถานะ</option>
+            <option>อื่นๆ</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="detail">รายละเอียด</label>
+          <textarea id="detail" name="detail"></textarea>
+        </div>
+        <button class="btn" id="send" type="submit">ส่งข้อมูล</button>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+</div>
+
+<!-- แชตกับแอดมิน (อยู่ได้ทุกหน้า พับเก็บได้) -->
+<button class="chat-fab" id="fab" type="button" aria-expanded="false" aria-controls="chat" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+  แชตกับแอดมิน
+</button>
+<div class="chat" id="chat" role="dialog" aria-label="แชตกับแอดมิน" hidden>
+  <div class="chat-head">
+    <div class="avatar">A</div>
+    <div class="t"><b>แอดมิน FIXCENTER</b><small>ออนไลน์ (ระบบจำลอง)</small></div>
+    <button class="chat-min" id="min" type="button" aria-label="พับเก็บแชต" title="พับเก็บ">–</button>
+  </div>
+  <div class="msgs" id="msgs" aria-live="polite"></div>
+  <div class="quick" id="quick">
+    <button type="button">สอบถามราคา</button>
+    <button type="button">ติดตามสถานะ</button>
+    <button type="button">เวลาทำการ</button>
+  </div>
+  <form class="chat-form" id="cf">
+    <input id="ci" placeholder="พิมพ์ข้อความ..." autocomplete="off" aria-label="ข้อความถึงแอดมิน">
+    <button type="submit">ส่ง</button>
+  </form>
+</div>
+
+<script>
+/* ============ CONFIG: แก้ตรงนี้เท่านั้น ============
+   1) formUrl: ลิงก์ Google Form เดิม เปลี่ยนท้ายจาก /viewform เป็น /formResponse
+      เช่น https://docs.google.com/forms/d/e/1FAIpQLSxxxxxxxx/formResponse
+   2) fields: entry ID ของแต่ละช่อง (ได้จาก "รับลิงก์ที่กรอกข้อมูลล่วงหน้า" ใน Google Form)
+   ช่อง "หัวข้อ" ถ้าใน Google Form เป็นตัวเลือก ข้อความต้องตรงกับตัวเลือกนั้นเป๊ะ */
+const CONFIG = {
+  formUrl: "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse",
+  fields: {
+    name:   "entry.0000000001",
+    phone:  "entry.0000000002",
+    email:  "entry.0000000003",
+    type:   "entry.0000000004",
+    detail: "entry.0000000005"
+  }
+};
+const configured = !CONFIG.formUrl.includes("YOUR_FORM_ID");
+if(!configured) document.getElementById("demo").hidden = false;
+
+/* ---------- พื้นหลัง Logo Burst (พอร์ตจาก logo-burst.tsx เป็น JS ล้วน) ---------- */
+function mulberry32(seed){
+  let a = seed >>> 0;
+  return () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const clampN = (v, a, b) => Math.min(b, Math.max(a, v));
+function makeTentacles(count, seed, ratio){
+  const rand = mulberry32(seed), out = [];
+  for(let i = 0; i < count; i++){
+    const angle = (i / count) * Math.PI * 2 + (rand() - 0.5) * (Math.PI * 2 * 0.018);
+    const roll = rand();
+    const length = roll < 0.12 ? 0.22 + rand() * 0.18 : roll < 0.78 ? 0.48 + rand() * 0.32 : 0.78 + rand() * 0.22;
+    const tip = rand() < ratio;
+    const midCount = rand() < 0.22 ? 2 : rand() < 0.48 ? 1 : 0;
+    const mids = [];
+    for(let m = 0; m < midCount; m++) mids.push({t: 0.28 + rand() * 0.52, size: 0.55 + rand() * 0.7, alpha: 0.28 + rand() * 0.38});
+    out.push({
+      angle, length: clampN(length, 0.16, 1), width: 0.35 + rand() * 0.85, alpha: 0.22 + rand() * 0.55,
+      delay: rand() * 0.42 + (i / count) * 0.08, grow: 0.55 + rand() * 0.7, phase: rand() * Math.PI * 2,
+      tip, tipSize: 0.85 + rand() * 1.35, tipOvershoot: tip && rand() < 0.35 ? 0.018 + rand() * 0.05 : 0, mids
+    });
+  }
+  return out;
+}
+function createLogoBurst(canvas, o){
+  const ctx = canvas.getContext("2d", {alpha: true});
+  if(!ctx) return null;
+  const tentacles = makeTentacles(o.count, o.seed, o.ratio);
+  const rgb = [parseInt(o.color.slice(1,3),16), parseInt(o.color.slice(3,5),16), parseInt(o.color.slice(5,7),16)];
+  const rgba = (a) => `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${clampN(a,0,1)})`;
+  const ease = t => { const p = 1 - clampN(t,0,1); return 1 - p*p*p*p; };
+  const size = {w:0, h:0};
+  let raf = 0, active = true, settled = false, startedAt = performance.now();
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let reduce = mq.matches; if(reduce) settled = true;
+  const resize = () => {
+    const p = canvas.parentElement; if(!p) return false;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    size.w = p.clientWidth; size.h = p.clientHeight;
+    const w = Math.floor(size.w * dpr), h = Math.floor(size.h * dpr);
+    const changed = w !== canvas.width || h !== canvas.height;
+    if(changed){ canvas.width = w; canvas.height = h; }
+    canvas.style.width = size.w + "px"; canvas.style.height = size.h + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return changed;
+  };
+  const progressOf = (now, t) => {
+    if(reduce || settled) return 1;
+    const span = o.duration * t.grow;
+    return ease(((now - startedAt) / 1000 - t.delay * o.duration) / span);
+  };
+  function paint(now){
+    if(!active) return;
+    const w = size.w, h = size.h;
+    if(!w || !h){ raf = requestAnimationFrame(paint); return; }
+    const cx = w / 2, cy = h / 2, maxR = Math.min(w, h) * o.radius;
+    const inner = Math.min(maxR * 0.92, o.coreSize * 0.42);
+    const sec = now / 1000, breathing = settled && !reduce && o.breathe;
+    const field = breathing ? Math.sin(sec * 0.92) * 0.015 : 0;
+    ctx.clearRect(0, 0, w, h); ctx.lineCap = "round";
+    let allDone = true;
+    for(const t of tentacles){
+      const p = progressOf(now, t);
+      if(p < 1) allDone = false;
+      const line = breathing ? Math.sin(sec * 1.28 + t.phase) * 0.018 : 0;
+      const scale = 1 + field + line;
+      const reach = inner + (maxR - inner) * t.length * p * scale;
+      if(reach <= inner + 0.4) continue;
+      const fade = breathing ? 0.9 + 0.1 * Math.sin(sec * 0.92 + t.phase * 0.35) : 1;
+      const cos = Math.cos(t.angle), sin = Math.sin(t.angle);
+      ctx.beginPath(); ctx.moveTo(cx + cos * inner, cy + sin * inner); ctx.lineTo(cx + cos * reach, cy + sin * reach);
+      ctx.strokeStyle = rgba(t.alpha * (0.55 + p * 0.45) * fade); ctx.lineWidth = t.width; ctx.stroke();
+      for(const m of t.mids){
+        if(p < m.t) continue;
+        const mr = inner + (maxR - inner) * t.length * m.t * scale;
+        ctx.beginPath(); ctx.arc(cx + cos * mr, cy + sin * mr, m.size, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(m.alpha * fade); ctx.fill();
+      }
+      if(t.tip && p > 0.92){
+        const tipR = inner + (maxR - inner) * t.length * (1 + t.tipOvershoot) * scale;
+        const appear = clampN((p - 0.92) / 0.08, 0, 1);
+        const pulse = breathing ? 1 + 0.1 * Math.sin(sec * 1.28 + t.phase) : 1;
+        ctx.beginPath(); ctx.arc(cx + cos * tipR, cy + sin * tipR, t.tipSize * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(0.78 * appear * fade); ctx.fill();
+      }
+    }
+    if(!reduce && allDone) settled = true;
+    if(active && !reduce) raf = requestAnimationFrame(paint);
+  }
+  resize();
+  const ro = new ResizeObserver(() => { if(!resize() || !active) return; cancelAnimationFrame(raf); paint(performance.now()); });
+  ro.observe(canvas.parentElement);
+  mq.addEventListener("change", () => {
+    const was = reduce; reduce = mq.matches; if(reduce) settled = true;
+    if(was && !reduce && active){ cancelAnimationFrame(raf); raf = requestAnimationFrame(paint); }
+  });
+  raf = requestAnimationFrame(paint);
+  return {
+    replay(){ settled = reduce; startedAt = performance.now(); cancelAnimationFrame(raf); if(active) raf = requestAnimationFrame(paint); },
+    pause(){ active = false; cancelAnimationFrame(raf); },
+    resume(){ if(active) return; active = true; resize(); this.replay(); }
+  };
+}
+const burst = createLogoBurst(document.getElementById("burst-canvas"), {
+  count: 260, color: "#D9D9D9", coreSize: 220, radius: 0.48, duration: 1.35, seed: 23, ratio: 0.62, breathe: true
+});
+
+/* ---------- สลับหน้า ---------- */
+const home = document.getElementById("home"), formpage = document.getElementById("formpage");
+function setView(name){
+  const isForm = name === "form";
+  home.hidden = isForm; formpage.hidden = !isForm;
+  document.getElementById("burst").hidden = isForm;
+  if(burst){ if(isForm) burst.pause(); else burst.resume(); }
+  window.scrollTo(0, 0);
+}
+function go(name){
+  setView(name);
+  try{ history.replaceState(null, "", name === "form" ? "#form" : "#"); }catch(e){}
+}
+document.querySelectorAll("[data-go]").forEach(a => a.addEventListener("click", e => {
+  e.preventDefault(); go(a.dataset.go);
+}));
+window.addEventListener("hashchange", () => setView(location.hash === "#form" ? "form" : "home"));
+setView(location.hash === "#form" ? "form" : "home");
+
+/* ---------- Sign In (ยังไม่เปิดใช้งานจริง) ---------- */
+document.getElementById("signin").addEventListener("click", () => {
+  const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role","status");
+  t.textContent = "ระบบล็อกอินจะเปิดให้ใช้งานเร็วๆ นี้";
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2400);
+});
+
+/* ---------- ฟอร์ม -> Google Form ---------- */
+const f = document.getElementById("f"), st = document.getElementById("status"), btn = document.getElementById("send");
+f.addEventListener("submit", async e => {
+  e.preventDefault();
+  st.className = "status"; st.textContent = "";
+  const v = k => f.elements[k].value.trim();
+  if(!v("name") || !v("phone") || !v("email") || !v("type")){
+    st.className = "status err"; st.textContent = "กรุณากรอกช่องที่มีเครื่องหมาย * ให้ครบ"; return;
+  }
+  if(!f.elements.email.checkValidity()){
+    st.className = "status err"; st.textContent = "รูปแบบอีเมลไม่ถูกต้อง"; return;
+  }
+  btn.disabled = true; btn.textContent = "กำลังส่ง...";
+  try{
+    if(configured){
+      const body = new URLSearchParams();
+      for(const k in CONFIG.fields) body.append(CONFIG.fields[k], v(k));
+      await fetch(CONFIG.formUrl, {method:"POST", mode:"no-cors", body});
+    } else {
+      await new Promise(r => setTimeout(r, 600));
+    }
+    st.className = "status ok";
+    st.textContent = configured ? "ส่งข้อมูลเรียบร้อย ตรวจสอบแถวใหม่ใน Google Sheet ได้เลย" : "ทดสอบสำเร็จ (ยังไม่ได้บันทึกลง Sheet เพราะยังไม่ได้ตั้งค่า CONFIG)";
+    f.reset();
+  }catch(err){
+    st.className = "status err"; st.textContent = "ส่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง";
+  }finally{
+    btn.disabled = false; btn.textContent = "ส่งข้อมูล";
+  }
+});
+
+/* ---------- แชตจำลอง ---------- */
+const fab = document.getElementById("fab"), chat = document.getElementById("chat"), msgs = document.getElementById("msgs");
+const ci = document.getElementById("ci"), quick = document.getElementById("quick");
+let greeted = false;
+fab.hidden = false;
+function add(text, who){
+  const d = document.createElement("div"); d.className = "m " + who; d.textContent = text;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+function reply(q){
+  const t = q.toLowerCase();
+  if(/ราคา|ค่าใช้จ่าย|เท่าไร/.test(t)) return "ราคาขึ้นอยู่กับอาการและรุ่นครับ รบกวนกดปุ่ม \"กรอกข้อมูล\" ที่หน้าแรก ทีมงานจะประเมินราคาและติดต่อกลับ";
+  if(/สถานะ|ติดตาม|ถึงไหน/.test(t)) return "ติดตามสถานะได้โดยแจ้งชื่อและเบอร์โทรที่ใช้กรอกฟอร์มครับ (ข้อความนี้เป็นการจำลอง)";
+  if(/เวลา|เปิด|ปิด/.test(t)) return "เปิดทำการทุกวัน 09:00-18:00 น. ครับ";
+  if(/สวัสดี|หวัดดี|hello|hi/.test(t)) return "สวัสดีครับ มีอะไรให้แอดมินช่วยไหมครับ";
+  return "ขอบคุณที่ติดต่อครับ แอดมินรับเรื่องแล้ว กรุณากรอกข้อมูลเพื่อให้ทีมงานติดต่อกลับ (ระบบตอบกลับอัตโนมัติ)";
+}
+function send(text){
+  add(text, "me"); quick.hidden = true;
+  const dots = document.createElement("div"); dots.className = "m them"; dots.textContent = "กำลังพิมพ์...";
+  msgs.appendChild(dots); msgs.scrollTop = msgs.scrollHeight;
+  setTimeout(() => { dots.remove(); add(reply(text), "them"); }, 900);
+}
+function openChat(){
+  chat.hidden = false; fab.hidden = true; fab.setAttribute("aria-expanded","true");
+  if(!greeted){ greeted = true; add("สวัสดีครับ ยินดีต้อนรับสู่ FIXCENTER ศูนย์บริการซ่อมมือถือครบวงจร มีอะไรให้ช่วยไหมครับ", "them"); }
+  ci.focus();
+}
+function minimizeChat(){ chat.hidden = true; fab.hidden = false; fab.setAttribute("aria-expanded","false"); }
+fab.addEventListener("click", openChat);
+document.getElementById("open-chat").addEventListener("click", openChat);
+document.getElementById("min").addEventListener("click", minimizeChat);
+document.getElementById("cf").addEventListener("submit", e => {
+  e.preventDefault(); const t = ci.value.trim(); if(!t) return; ci.value = ""; send(t);
+});
+quick.querySelectorAll("button").forEach(b => b.addEventListener("click", () => send(b.textContent)));
+</script>
+</body>
+</html>
