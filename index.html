@@ -92,6 +92,25 @@ legend em{color:var(--muted);font-style:normal}
 .modal-x{position:absolute;top:10px;right:12px;border:0;background:transparent;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:4px 8px}
 .modal-x:hover{color:var(--ink)}
 .m{white-space:pre-line}
+/* intro: คลื่นขาวดำ + กระจกเบลอ เห็นหน้าหลักจางๆ ด้านหลัง */
+html.intro-on,html.intro-on body{overflow:hidden;height:100%}
+.intro{position:fixed;inset:0;z-index:80;display:grid;place-items:center;text-align:center;cursor:pointer;touch-action:none;
+  background:rgba(8,8,8,.12);-webkit-backdrop-filter:blur(12px) saturate(1.3);backdrop-filter:blur(12px) saturate(1.3);
+  transition:transform .95s cubic-bezier(.7,0,.2,1);will-change:transform}
+.intro.leaving{transform:translateY(-100%)}
+.intro:focus-visible{outline:2px solid #fff;outline-offset:-8px}
+.intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.intro-inner{position:relative;display:grid;gap:28px;justify-items:center;max-width:100%;padding-inline:max(16px,env(safe-area-inset-left,0px))}
+.intro-title{font-family:var(--font-display);font-weight:500;font-size:clamp(34px,8vw,96px);line-height:1.1;letter-spacing:-.01em;color:#FFFFFF;text-wrap:balance;text-shadow:0 2px 32px rgba(0,0,0,.6)}
+.intro-hint{display:flex;align-items:center;gap:8px;margin:0;color:rgba(255,255,255,.85);font-size:15px;text-shadow:0 1px 12px rgba(0,0,0,.7)}
+.intro-hint svg{width:18px;height:18px;flex:none}
+@media (prefers-reduced-motion:no-preference){
+  .intro-title{animation:introIn 1.1s .15s both cubic-bezier(.2,.7,.2,1)}
+  .intro-hint{animation:introIn 1s .8s both cubic-bezier(.2,.7,.2,1)}
+  .intro-hint svg{animation:nudge 1.6s ease-in-out infinite}
+}
+@keyframes introIn{from{opacity:0;transform:translateY(14px);filter:blur(8px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes nudge{50%{transform:translateY(4px)}}
 .channels{display:grid;gap:10px}
 .ch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;min-height:56px;border:1px solid var(--line);border-radius:12px}
 .ch-name{font-family:var(--font-display);font-weight:500}
@@ -156,6 +175,15 @@ legend em{color:var(--muted);font-style:normal}
 </head>
 <body>
 <div class="burst" id="burst" aria-hidden="true"><canvas id="burst-canvas"></canvas></div>
+
+<!-- หน้าเปิด Welcome: เลื่อน แตะ หรือกด Enter เพื่อเข้าหน้าหลัก -->
+<div class="intro" id="intro" role="button" tabindex="0" aria-label="Welcome To Fixcenter แตะหรือเลื่อนเพื่อเข้าสู่เว็บไซต์">
+  <canvas id="intro-canvas" aria-hidden="true"></canvas>
+  <div class="intro-inner">
+    <div class="intro-title">Welcome To Fixcenter</div>
+    <p class="intro-hint"><span>เลื่อนหรือแตะเพื่อเข้าสู่เว็บไซต์</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></p>
+  </div>
+</div>
 <div class="wrap">
   <header>
     <a class="logo" href="#" data-go="home" aria-label="FIXCENTER หน้าแรก"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>FIXCENTER</a>
@@ -608,6 +636,98 @@ document.getElementById("mail-copy").addEventListener("click", async e => {
   }
   setTimeout(() => { b.textContent = "คัดลอก"; }, 1800);
 });
+
+/* ---------- หน้าเปิด Welcome: คลื่นขาวดำ (WebGL) + กระจกเบลอ ---------- */
+(function(){
+  const intro = document.getElementById("intro");
+  if(!intro) return;
+  if(location.hash === "#form"){ intro.hidden = true; return; }
+  const root = document.documentElement;
+  root.classList.add("intro-on");
+  const canvas = document.getElementById("intro-canvas");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const VS = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
+  const FS = `
+precision highp float;
+uniform vec2 r; uniform float t;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float field(vec2 uv, float tt){
+  vec2 p = uv * 1.35;
+  for(int i = 1; i < 5; i++){
+    float fi = float(i);
+    p += vec2(0.62 / fi * sin(fi * 1.7 * p.y + tt + 0.3 * fi), 0.62 / fi * cos(fi * 1.5 * p.x + tt * 0.9 + 1.7 * fi));
+  }
+  return 0.5 + 0.5 * sin(p.x * 1.4 + p.y * 1.0 + sin(p.y * 0.8));
+}
+void main(){
+  vec2 uv = (gl_FragCoord.xy - 0.5 * r) / min(r.x, r.y);
+  float tt = t * 0.16;
+  float e = 0.008;
+  float h = field(uv, tt), hx = field(uv + vec2(e, 0.0), tt), hy = field(uv + vec2(0.0, e), tt);
+  vec3 n = normalize(vec3((h - hx) / e * 0.34, (h - hy) / e * 0.34, 1.0));
+  vec3 L = normalize(vec3(-0.55, 0.65, 0.55));
+  float diff = dot(n, L);
+  float spec = pow(max(dot(reflect(-L, n), vec3(0.0, 0.0, 1.0)), 0.0), 18.0);
+  float c = smoothstep(0.05, 0.98, diff) * 0.92 + spec * 0.45;
+  c *= 0.55 + 0.45 * smoothstep(0.0, 0.75, length(uv));
+  c += (hash(gl_FragCoord.xy + fract(t)) - 0.5) * 0.04;
+  c = clamp(c, 0.0, 1.0);
+  float a = 0.74;
+  gl_FragColor = vec4(vec3(c) * a, a);
+}`;
+  let gl = null, uR = null, uT = null, raf = 0, alive = true, leaving = false;
+  function sh(type, src){
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+  }
+  try{
+    gl = canvas.getContext("webgl", {alpha: true, premultipliedAlpha: true, antialias: false, powerPreference: "low-power"});
+    if(gl){
+      const v = sh(gl.VERTEX_SHADER, VS), f = sh(gl.FRAGMENT_SHADER, FS);
+      if(!v || !f) throw new Error("shader");
+      const prog = gl.createProgram(); gl.attachShader(prog, v); gl.attachShader(prog, f); gl.linkProgram(prog);
+      if(!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error("link");
+      gl.useProgram(prog);
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const loc = gl.getAttribLocation(prog, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      uR = gl.getUniformLocation(prog, "r"); uT = gl.getUniformLocation(prog, "t");
+    }
+  }catch(e){ gl = null; }
+  if(!gl){
+    intro.style.background = "linear-gradient(135deg, rgba(10,10,10,.9), rgba(70,70,70,.8) 45%, rgba(10,10,10,.9))";
+  } else {
+    const draw = now => {
+      if(!alive) return;
+      const s = Math.min(window.devicePixelRatio || 1, 1.5) * 0.6;
+      const w = Math.max(2, Math.floor(intro.clientWidth * s)), h = Math.max(2, Math.floor(intro.clientHeight * s));
+      if(canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
+      gl.viewport(0, 0, w, h);
+      gl.uniform2f(uR, w, h); gl.uniform1f(uT, reduce ? 18 : now / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if(!reduce) raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    window.addEventListener("resize", () => { if(alive && reduce){ cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); } });
+  }
+  function enter(){
+    if(leaving) return; leaving = true;
+    intro.classList.add("leaving");
+    if(burst) burst.replay();
+    const done = () => { if(!alive) return; alive = false; cancelAnimationFrame(raf); intro.hidden = true; root.classList.remove("intro-on"); };
+    intro.addEventListener("transitionend", e => { if(e.target === intro && e.propertyName === "transform") done(); });
+    setTimeout(done, 1400);
+  }
+  intro.addEventListener("click", enter);
+  intro.addEventListener("wheel", e => { if(e.deltaY > 4) enter(); }, {passive: true});
+  let y0 = null;
+  intro.addEventListener("touchstart", e => { y0 = e.touches[0].clientY; }, {passive: true});
+  intro.addEventListener("touchmove", e => { if(y0 !== null && y0 - e.touches[0].clientY > 30) enter(); }, {passive: true});
+  document.addEventListener("keydown", e => {
+    if(intro.hidden || leaving) return;
+    if(e.key === "Enter" || e.key === " " || e.key === "ArrowDown" || e.key === "PageDown"){ e.preventDefault(); enter(); }
+  });
+})();
 
 /* ---------- แจ้งเตือนสำเร็จ: กดตกลงแล้วกลับหน้าแรก ---------- */
 const okmodal = document.getElementById("okmodal");
