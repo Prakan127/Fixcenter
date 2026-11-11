@@ -88,6 +88,9 @@ legend em{color:var(--muted);font-style:normal}
 .modal-box .sub{margin:0 0 20px;color:var(--muted);font-size:14px}
 .modal-x{position:absolute;top:10px;right:12px;border:0;background:transparent;color:var(--muted);font-size:26px;line-height:1;cursor:pointer;padding:4px 8px}
 .modal-x:hover{color:var(--ink)}
+.success{text-align:center}
+.ok-icon{width:56px;height:56px;border-radius:50%;background:var(--btn-light);color:var(--btn-light-ink);display:grid;place-items:center;margin:0 auto 14px}
+.ok-icon svg{width:28px;height:28px}
 #gbtn{color-scheme:light;display:flex;justify-content:center;min-height:44px;margin-bottom:8px}
 .note{margin:12px 0 0;color:var(--muted);font-size:13px;text-align:center}
 /* chat */
@@ -201,6 +204,16 @@ legend em{color:var(--muted);font-style:normal}
       </form>
     </section>
   </main>
+</div>
+
+<!-- แจ้งเตือนส่งข้อมูลสำเร็จ -->
+<div class="modal" id="okmodal" hidden>
+  <div class="modal-box success" role="alertdialog" aria-modal="true" aria-labelledby="ok-title" aria-describedby="ok-desc">
+    <div class="ok-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h2 id="ok-title">ส่งข้อมูลสำเร็จ</h2>
+    <p class="sub" id="ok-desc">ระบบส่งข้อมูลของคุณเรียบร้อยแล้ว ทีมงานจะติดต่อกลับ</p>
+    <button class="btn" id="ok-btn" type="button">ตกลง</button>
+  </div>
 </div>
 
 <!-- หน้าต่าง Sign In (จำลอง) -->
@@ -513,15 +526,21 @@ f.addEventListener("submit", async e => {
     } else {
       await new Promise(r => setTimeout(r, 600));
     }
-    st.className = "status ok";
-    st.textContent = "ส่งข้อมูลเรียบร้อย ทีมงานจะติดต่อกลับ";
-    f.reset(); fillFromProfile();
+    f.reset(); fillFromProfile(); openSuccess();
   }catch(err){
     fail("ส่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง");
   }finally{
     btn.disabled = false; btn.textContent = "ส่งข้อมูล";
   }
 });
+
+/* ---------- แจ้งเตือนสำเร็จ: กดตกลงแล้วกลับหน้าแรก ---------- */
+const okmodal = document.getElementById("okmodal");
+function openSuccess(){ okmodal.hidden = false; setTimeout(() => document.getElementById("ok-btn").focus(), 0); }
+function closeSuccess(){ okmodal.hidden = true; go("home"); }
+document.getElementById("ok-btn").addEventListener("click", closeSuccess);
+okmodal.addEventListener("click", e => { if(e.target === okmodal) closeSuccess(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !okmodal.hidden) closeSuccess(); });
 
 /* ---------- แชตจำลอง ---------- */
 const fab = document.getElementById("fab"), chat = document.getElementById("chat"), msgs = document.getElementById("msgs");
