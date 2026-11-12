@@ -6,7 +6,7 @@
 <title>FIXCENTER</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Noto+Serif+Thai:wght@600&family=Prompt:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 /* Layout: dark full-height hero, centered headline with two pill buttons; form is a second view (#form); chat floats bottom-right and can be minimized. */
 :root{
@@ -41,7 +41,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 
 /* home */
 .hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-block:40px 96px}
-h1{text-shadow:0 0 28px rgba(10,10,10,.95),0 0 8px rgba(10,10,10,.8);font-family:var(--font-display);font-weight:500;font-size:clamp(30px,5.6vw,64px);line-height:1.2;letter-spacing:-.01em;margin:0 0 36px;text-wrap:balance}
+h1{filter:drop-shadow(0 2px 14px rgba(0,0,0,.75)) drop-shadow(0 0 22px rgba(255,255,255,.2));font-family:"Noto Serif Thai",serif;font-weight:600;font-size:clamp(30px,5.2vw,60px);line-height:1.25;letter-spacing:0;margin:0 0 36px;text-wrap:balance}
+h1 .g{display:inline-block;padding:.05em .02em;background:linear-gradient(180deg,#fff 0%,#e4e4e4 40%,#8f8f8f 52%,#d8d8d8 70%,#fff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+h1 .bt{font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;font-size:1.6em;line-height:1;letter-spacing:.01em}
 h1 span{display:block}
 .cta{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}
 .pill{display:inline-flex;align-items:center;gap:10px;font:inherit;font-weight:500;font-size:17px;border:0;border-radius:999px;padding:16px 30px;cursor:pointer;text-decoration:none}
@@ -101,7 +103,10 @@ html.intro-on,html.intro-on body{overflow:hidden;height:100%}
 .intro:focus-visible{outline:2px solid #fff;outline-offset:-8px}
 .intro canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .intro-inner{position:relative;display:grid;gap:28px;justify-items:center;max-width:100%;padding-inline:max(16px,env(safe-area-inset-left,0px))}
-.intro-title{font-family:var(--font-display);font-weight:500;font-size:clamp(36px,9vw,104px);line-height:1;letter-spacing:-.01em;color:#FFFFFF;display:grid;justify-items:center;gap:0;text-shadow:0 2px 32px rgba(0,0,0,.6)}
+.intro-title{font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;font-size:clamp(44px,11vw,120px);line-height:1.04;letter-spacing:0;display:grid;justify-items:center;gap:0;text-align:center;filter:drop-shadow(0 2px 18px rgba(0,0,0,.55)) drop-shadow(0 0 26px rgba(255,255,255,.22))}
+.intro-title .g{display:inline-block;padding:.04em .02em;background:linear-gradient(180deg,#fff 0%,#e4e4e4 40%,#8f8f8f 52%,#d8d8d8 70%,#fff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.intro-title .fix{position:relative;display:inline-block}
+.intro-title .wr{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:.14em;font-size:.72em;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji",sans-serif;font-weight:400}
 .intro-hint{display:flex;align-items:center;gap:8px;margin:0;color:rgba(255,255,255,.85);font-size:15px;text-shadow:0 1px 12px rgba(0,0,0,.7)}
 .intro-hint svg{width:18px;height:18px;flex:none}
 @media (prefers-reduced-motion:no-preference){
@@ -180,7 +185,7 @@ html.intro-on,html.intro-on body{overflow:hidden;height:100%}
 <div class="intro" id="intro" role="button" tabindex="0" aria-label="Welcome To Fixcenter แตะหรือเลื่อนเพื่อเข้าสู่เว็บไซต์">
   <canvas id="intro-canvas" aria-hidden="true"></canvas>
   <div class="intro-inner">
-    <div class="intro-title"><span>Welcome</span><span>To</span><span>FIXCENTER <span aria-hidden="true">📱🔧</span></span></div>
+    <div class="intro-title"><span class="g">Welcome</span><span class="g">To</span><span class="fix"><span class="g">FIXCENTER</span><span class="wr" aria-hidden="true">🔧</span></span></div>
     <p class="intro-hint"><span>เลื่อนหรือแตะเพื่อเข้าสู่เว็บไซต์</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></p>
   </div>
 </div>
@@ -196,7 +201,7 @@ html.intro-on,html.intro-on body{overflow:hidden;height:100%}
 
   <!-- หน้าแรก -->
   <main class="hero" id="home">
-    <h1><span class="brandline"><span class="mark big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span>FIXCENTER</span><span>ศูนย์บริการซ่อมมือถือครบวงจร</span></h1>
+    <h1><span class="brandline"><span class="mark big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span><span class="bt g">FIXCENTER</span></span><span class="g">ศูนย์บริการซ่อมมือถือครบวงจร</span></h1>
     <div class="cta">
       <button class="pill dark" id="open-chat" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
